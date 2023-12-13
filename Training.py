@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[39]:
+# In[1]:
 
 
 import tensorflow as tf
@@ -9,7 +9,7 @@ from tensorflow.keras import models, layers
 import matplotlib.pyplot as plt
 
 
-# In[40]:
+# In[3]:
 
 
 IMAGE_SIZE = 256 
@@ -18,7 +18,7 @@ CHANNELS = 3
 EPOCHS = 50
 
 
-# In[41]:
+# In[4]:
 
 
 dataset = tf.keras.preprocessing.image_dataset_from_directory(
@@ -30,14 +30,14 @@ dataset = tf.keras.preprocessing.image_dataset_from_directory(
 )
 
 
-# In[42]:
+# In[5]:
 
 
 class_names = dataset.class_names
 class_names #Our folder names are our class names
 
 
-# In[43]:
+# In[6]:
 
 
 print(len(dataset)) #Every element in the dataset is actually a batch of 32 images
@@ -45,7 +45,7 @@ print(len(dataset)) #Every element in the dataset is actually a batch of 32 imag
 print(68*32, "This is the total number of images not accurate though")
 
 
-# In[44]:
+# In[7]:
 
 
 for image_batch, label_batch in dataset.take(1):
@@ -61,7 +61,7 @@ for image_batch, label_batch in dataset.take(1):
 #2 is for Potato___healthy
 
 
-# In[45]:
+# In[8]:
 
 
 #Lets print first image only for now:
@@ -70,7 +70,7 @@ for image_batch, label_batch in dataset.take(1):
     print(image_batch[0].numpy()) #Those numbers are in 3d array, every number is bewteen 0 to 255(the color)
 
 
-# In[46]:
+# In[27]:
 
 
 plt.figure(figsize = (10,10)) #Increase the size of the area
@@ -82,34 +82,34 @@ for image_batch, label_batch in dataset.take(1):
         plt.title(class_names[label_batch[i]]) #Display the lable
 
 
-# In[47]:
+# In[28]:
 
 
 # 80% ==> training #Used for training
 # 20% ==> 10% validation, 10% test
 
 
-# In[48]:
+# In[29]:
 
 
 len(dataset)
 
 
-# In[49]:
+# In[30]:
 
 
 train_size = 0.8
 len(dataset)*train_size
 
 
-# In[50]:
+# In[31]:
 
 
 train_ds = dataset.take(54) # it'll take first 54 batches/ arr[:54]
 len(train_ds)
 
 
-# In[51]:
+# In[32]:
 
 
 # Gives reamining 20% and then we split into test and validation
@@ -117,28 +117,28 @@ test_ds = dataset.skip(54) # arr[54:] #skip first 54 dataset and get the remaini
 len(test_ds)
 
 
-# In[52]:
+# In[33]:
 
 
 val_size = 0.1
 len(dataset)*val_size
 
 
-# In[53]:
+# In[34]:
 
 
 val_ds = test_ds.take(6)
 len(val_ds)
 
 
-# In[54]:
+# In[35]:
 
 
 test_ds = test_ds.skip(6)
 len(test_ds)
 
 
-# In[58]:
+# In[36]:
 
 
 def get_dataset_partitions_tf(ds, train_split = 0.8, val_split= 0.1, test_split = 0.1, shuffle =True, shuffle_size = 100000):
@@ -158,31 +158,31 @@ def get_dataset_partitions_tf(ds, train_split = 0.8, val_split= 0.1, test_split 
     return train_ds, val_ds, test_ds
 
 
-# In[59]:
+# In[37]:
 
 
 train_ds, val_ds, test_ds = get_dataset_partitions_tf(dataset)
 
 
-# In[60]:
+# In[38]:
 
 
 len(train_ds)
 
 
-# In[62]:
+# In[39]:
 
 
 len(val_ds)
 
 
-# In[64]:
+# In[40]:
 
 
 len(test_ds)
 
 
-# In[67]:
+# In[41]:
 
 
 # TO OPTIMIZE TRAINING TIME
@@ -194,32 +194,33 @@ test_ds = test_ds.cache().shuffle(1000).prefetch(buffer_size = tf.data.AUTOTUNE)
 # cache will save time reading the images
 
 
-# In[ ]:
+# In[48]:
 
 
+import tensorflow as tf
+from tensorflow.keras import layers
 
 
-
-# In[69]:
+# In[51]:
 
 
 resize_and_rescale = tf.keras.Sequential([
-    layers.experimental.preprocessing.Resizing(IMAGE_SIZE, IMAGE_SIZE),
-    layers.experimental.preprocessing.Rescaling(1.0/255)
+    layers.Resizing(IMAGE_SIZE, IMAGE_SIZE),
+    layers.Rescaling(1.0/255)
 ])
 
 
-# In[71]:
+# In[54]:
 
 
 #Data Augmentation - to make our model robust
 data_augmentation = tf.keras.Sequential([
-    layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
-    layers.experimental.preprocessing.RandomRotation(0.2),
+    layers.RandomFlip("horizontal_and_vertical"),
+    layers.RandomRotation(0.2),
 ])
 
 
-# In[74]:
+# In[55]:
 
 
 #Building Our Model Now:
@@ -250,13 +251,20 @@ model = models.Sequential([
 model.build(input_shape=input_shape)
 
 
-# In[76]:
+# In[98]:
+
+
+layers.Conv2D(32, kernel_size=(3,3), activation='relu'),
+layers.Dropout(0.5), # Example dropout layer with 50% dropout rate
+
+
+# In[56]:
 
 
 model.summary()
 
 
-# In[78]:
+# In[57]:
 
 
 #Compling the Model now:
@@ -267,7 +275,7 @@ model.compile(
 )
 
 
-# In[79]:
+# In[90]:
 
 
 history = model.fit(
@@ -279,55 +287,142 @@ history = model.fit(
 )
 
 
-# In[81]:
+# In[91]:
+
+
+#Final Accuracy and Loss
+
+acc = history.history['accuracy']
+loss = history.history['loss']
+val_acc = history.history['val_accuracy']
+val_loss = history.history['val_loss']
+
+final_accuracy = acc[-1]
+final_loss = loss[-1]
+print(f"Final Training Accuracy: {final_accuracy}")
+print(f"Final Training Loss: {final_loss}")
+
+
+# In[92]:
+
+
+#Validation Metrics
+
+final_val_accuracy = val_acc[-1]
+final_val_loss = val_loss[-1]
+print(f"Final Validation Accuracy: {final_val_accuracy}")
+print(f"Final Validation Loss: {final_val_loss}")
+
+
+# In[93]:
 
 
 scores = model.evaluate(test_ds)
 
 
-# In[83]:
+# In[94]:
+
+
+#Test Set Performance
+
+test_accuracy = scores[1]
+test_loss = scores[0]
+print(f"Test Accuracy: {test_accuracy}")
+print(f"Test Loss: {test_loss}")
+
+
+# In[96]:
+
+
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sns
+
+# Get true labels and predicted labels
+y_true = np.concatenate([y for x, y in test_ds], axis=0)
+y_pred = np.argmax(model.predict(test_ds), axis=1)
+
+# Compute confusion matrix
+cm = confusion_matrix(y_true, y_pred)
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.show()
+
+
+# In[104]:
+
+
+from tensorflow.keras.metrics import Precision, Recall, CategoricalAccuracy
+import numpy as np
+
+y_true = np.concatenate([y for x, y in test_ds], axis=0)
+y_pred = model.predict(test_ds)
+y_pred = np.argmax(y_pred, axis=1)
+
+# Now, we calculate precision, recall, and accuracy
+precision = Precision()
+recall = Recall()
+accuracy = CategoricalAccuracy()
+
+precision.update_state(y_true, y_pred)
+recall.update_state(y_true, y_pred)
+accuracy.update_state(y_true, y_pred)
+
+# To compute F1 score, we can use the formula F1 = 2 * (precision * recall) / (precision + recall)
+# We need to compute the result for precision and recall first
+precision_result = precision.result().numpy()
+recall_result = recall.result().numpy()
+f1_score = 2 * (precision_result * recall_result) / (precision_result + recall_result)
+
+print(f"Precision: {precision_result}")
+print(f"Recall: {recall_result}")
+print(f"F1 Score: {f1_score}")
+print(f"Categorical Accuracy: {accuracy.result().numpy()}")
+
+
+# In[68]:
 
 
 scores
 
 
-# In[84]:
+# In[69]:
 
 
 history
 
 
-# In[85]:
+# In[70]:
 
 
 history.params
 
 
-# In[86]:
+# In[71]:
 
 
 history.history.keys()
 
 
-# In[87]:
+# In[72]:
 
 
 type(history.history['loss'])
 
 
-# In[88]:
+# In[73]:
 
 
 len(history.history['loss'])
 
 
-# In[89]:
+# In[74]:
 
 
 history.history['loss'][:5] # show loss for first 5 epochs
 
 
-# In[91]:
+# In[110]:
 
 
 acc = history.history['accuracy']
@@ -337,7 +432,7 @@ loss = history.history['loss']
 val_loss = history.history['val_loss']
 
 
-# In[92]:
+# In[111]:
 
 
 plt.figure(figsize=(8, 8))
@@ -355,7 +450,7 @@ plt.title('Training and Validation Loss')
 plt.show()
 
 
-# In[94]:
+# In[113]:
 
 
 # Running prediction on a sample image
